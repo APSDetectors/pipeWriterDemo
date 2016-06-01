@@ -1,0 +1,50 @@
+
+# this will make  anamed pipe, if not already there. if already there, it
+# just says it cant create. ignore that.
+mkfifo ./mypipe
+
+#make a sleep process that will keep pipe open for ever. need a read and write.
+# pipe rules un linux:
+# 1  if app opens pipe for reading, it blocks on fopen until some other process
+# opens the pipe for writing.
+#2  if app opens pipe for writing, it blocks on fopen until some other process opens
+# it for reading.
+# 3 if writing app closes pipe, the reader app exits.
+# 4 if reading app closes pipe, writer exits.
+# 5 any number of reader and writer processes can fopen the same pipe.
+# 6, using sleep for read and writing the pipe, means the pipe stays open forever.
+# other apps will not  block on fopen, or exit on pipe closing, becuase pipe never
+# closes.
+# 7 if reading process calls fread and no data is available, it blocks until 
+# data is there.
+# 8 pipe can only remain open if there is at least one writer AND one reader.
+
+#below makes sure pipes remain open forever. pkill -f sleep to kill these procs.
+sleep 99999 > ./mypipe &
+sleep 99999 < ./mypipe &
+
+sleep 1
+
+
+# make a listener on network. listen on localhost port 50001. this could
+# be on another computer.
+xterm -e "nc -l 127.0.0.1 50001" &
+
+sleep 1
+
+#make a sender on thsi computer, that reads the linux pipe, sends over net.
+xterm -e "nc 127.0.0.1 50001 < ./mypipe" &
+
+
+sleep 1
+
+#dump a text file to the pipe.
+cat apstext.txt > ./mypipe
+
+
+echo "\n\n\n We will now exit\n\n" > ./mypipe
+sleep 5
+
+#kill those sleeps we made earlier...pipe will close, nc's will exit.
+pkill -f sleep
+

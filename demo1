@@ -1,0 +1,7 @@
+mkfifo ./mypipe
+
+
+xterm -e "hexdump -v <mypipe" &
+
+./imgWrite
+

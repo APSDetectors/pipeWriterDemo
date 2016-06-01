@@ -1,0 +1,8 @@
+mkfifo ./mypipe
+
+#sleep 3 is so we can read the text on the term after imgWrite exits
+xterm -e "imgWrite; sleep 3" &
+
+sleep 3
+./imgRead
+
